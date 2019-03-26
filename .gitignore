@@ -1,0 +1,7 @@
+*.o
+Debug
+Release
+*.yuv420
+*.h264
+.vs
+*.pub
