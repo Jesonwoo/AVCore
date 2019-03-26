@@ -5,3 +5,4 @@ Release
 *.h264
 .vs
 *.pub
+out

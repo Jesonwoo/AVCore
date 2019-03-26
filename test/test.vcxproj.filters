@@ -13,24 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="头文件\common">
-      <UniqueIdentifier>{57646d97-2a9c-41f2-ab0b-fc20eb1fae92}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="源文件\common">
-      <UniqueIdentifier>{8d6a7f1a-928d-41ca-91ab-d3425ed2b10c}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\common\log.cpp">
-      <Filter>源文件\common</Filter>
+    <ClCompile Include="test.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\common\typedefs.h">
-      <Filter>头文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\log.h">
-      <Filter>头文件\common</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
