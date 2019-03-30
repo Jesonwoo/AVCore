@@ -1,9 +1,9 @@
-*.o
 Debug
 Release
+.vs
+out
+*.o
 *.yuv
 *.h264
-.vs
 *.pub
-out
 
