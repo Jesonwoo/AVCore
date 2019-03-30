@@ -1,8 +1,9 @@
 *.o
 Debug
 Release
-*.yuv420
+*.yuv
 *.h264
 .vs
 *.pub
 out
+
