@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{0D98E9B2-AB6E-4EC5-96A2-3FB5DFAEC93C}</ProjectGuid>
     <RootNamespace>Core</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -94,8 +94,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)3rd\ffmpeg\include</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ProjectDir)\3rd\ffmpeg\lib;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>avcodec.lib;avdevice.lib;avutil.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -119,17 +123,23 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)\include;$(ProjectDir)\3rd;$(ProjectDir)\3rd\ffmpeg\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>avcodec.lib;avdevice.lib;avutil.lib;swresample.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\3rd\ffmpeg\lib;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\codec\FFVideoEncoder.h" />
+    <ClInclude Include="include\codec\IVideoEncoder.h" />
     <ClInclude Include="include\common\log.h" />
     <ClInclude Include="include\common\typedefs.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\codec\FFVideoEncoder.cpp" />
     <ClCompile Include="src\common\log.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

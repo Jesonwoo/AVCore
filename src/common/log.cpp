@@ -19,7 +19,7 @@ static const char level_char[] = {'U', 'D', 'V', 'D', 'I', 'W', 'E', 'F', 'S'};
 static void DefLog(int level, const char * tag, const char *fmt, va_list valist);
 
 static CoreLogType glog   = DefLog;
-static int glevel         = LogWarn;
+static int glevel         = LogInfo;
 
 void DefLog(int level, const char * tag, const char *fmt, va_list valist)
 {

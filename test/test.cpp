@@ -1,10 +1,10 @@
 #include <common/log.h>
 
-int main() {
+extern void TestFFVideoEncoder();
 
-    LOGE("test", "%s\n", __FUNCTION__);
-
-
+int main()
+{
+    TestFFVideoEncoder();
     system("pause");
     return 0;
 }

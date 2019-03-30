@@ -8,6 +8,15 @@
 #include <winsock2.h>   //SOCKET
 #include <windows.h>
 
+typedef signed char         int8_t;
+typedef signed short        int16_t;
+typedef signed int          int32_t;
+typedef signed __int64      int64_t;
+typedef unsigned char       uint8_t;
+typedef unsigned short      uint16_t;
+typedef unsigned int        uint32_t;
+typedef unsigned __int64    uint64_t;
+
 #if _MSC_VER >= 1900
 #define PI32        "zd"
 #define PI64        "lld"
@@ -28,14 +37,6 @@
 #define CORE_EXPORT          __declspec(dllexport)
 #if _DEBUG
 #define CORE_DEBUG_EXPORT    __declspec(dllexport)
-#endif
-
-#ifndef INT64_MAX
-#define INT64_MAX                   0x7fffffffffffffffLL
-#endif
-
-#ifndef INT32_MAX
-#define INT32_MAX                   0x7fffffff
 #endif
 
 #endif // __TYPEDEF_H__

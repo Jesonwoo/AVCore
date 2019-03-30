@@ -19,10 +19,19 @@
     <Filter Include="源文件\common">
       <UniqueIdentifier>{8d6a7f1a-928d-41ca-91ab-d3425ed2b10c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="头文件\codec">
+      <UniqueIdentifier>{fd7ef23d-807a-41e2-9fd4-afe18969d6a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\codec">
+      <UniqueIdentifier>{314b0f9b-b1ed-4352-8d93-4384021e3f77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\common\log.cpp">
       <Filter>源文件\common</Filter>
+    </ClCompile>
+    <ClCompile Include="src\codec\FFVideoEncoder.cpp">
+      <Filter>源文件\codec</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +40,12 @@
     </ClInclude>
     <ClInclude Include="include\common\log.h">
       <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\codec\FFVideoEncoder.h">
+      <Filter>头文件\codec</Filter>
+    </ClInclude>
+    <ClInclude Include="include\codec\IVideoEncoder.h">
+      <Filter>头文件\codec</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
