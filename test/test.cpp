@@ -1,10 +1,12 @@
 #include <common/log.h>
 
 extern void TestFFVideoEncoder();
+extern void TestLogurur();
 
 int main()
 {
-    TestFFVideoEncoder();
+    //TestFFVideoEncoder();
+	TestLogurur();
     system("pause");
     return 0;
 }

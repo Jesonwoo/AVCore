@@ -33,6 +33,9 @@
     <ClCompile Include="src\codec\FFVideoEncoder.cpp">
       <Filter>源文件\codec</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\MemoryPool.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\typedefs.h">
@@ -46,6 +49,9 @@
     </ClInclude>
     <ClInclude Include="include\codec\IVideoEncoder.h">
       <Filter>头文件\codec</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\MemoryPool.h">
+      <Filter>头文件\common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
