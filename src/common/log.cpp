@@ -30,7 +30,7 @@ void DefLog(int level, const char * tag, const char *fmt, va_list valist)
     char line[4096];
     const int linesize = 4096;
     
-    int off = 0;
+    size_t off = 0;
     time_t t_time = time(NULL);
 
     struct tm tm_time;
@@ -48,7 +48,7 @@ void DefLog(int level, const char * tag, const char *fmt, va_list valist)
 
     off += vsnprintf(line + off, linesize - off, fmt, valist);
     
-    write(1, line, off);
+    write(1, line, (size_t)off);
     
     return;
 }
