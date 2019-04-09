@@ -1,8 +1,6 @@
 #include <common/MemoryPool.h>
-#include <common/log.h>
+#include <common/corelog.hpp>
 #include <new>
-
-const static char * TAG = "memory pool";
 
 MemoryPool::MemoryPool(int count, int size)
 	: m_pPool(NULL)
@@ -17,8 +15,9 @@ MemoryPool::MemoryPool(int count, int size)
 	try {
 		m_pPool = new uint8_t[(size + kAddrSize) * count];
 	} catch(const std::bad_alloc & e) {
-		LOGE(TAG, "couldn't new a memory pool, chunk size: %d, count: %d\n",
-			 m_iChunkSize, m_iCount);
+        LOG_SCOPE_F(ERROR, "bad_allc: %s", e.what());
+        LOG_F(ERROR, "couldn't new a memory pool, chunk size: %d, count: %d\n",
+              m_iChunkSize, m_iCount);
 		return;
 	}
 }

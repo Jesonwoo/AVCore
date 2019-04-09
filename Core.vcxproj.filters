@@ -36,6 +36,9 @@
     <ClCompile Include="src\common\MemoryPool.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\corelog.cpp">
+      <Filter>源文件\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\typedefs.h">
@@ -51,6 +54,9 @@
       <Filter>头文件\codec</Filter>
     </ClInclude>
     <ClInclude Include="include\common\MemoryPool.h">
+      <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\common\corelog.hpp">
       <Filter>头文件\common</Filter>
     </ClInclude>
   </ItemGroup>

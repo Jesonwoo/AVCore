@@ -6,5 +6,6 @@ out
 *.yuv
 *.h264
 *.pub
+*.log
 
 

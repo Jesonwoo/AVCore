@@ -1,5 +1,4 @@
-#include <common/log.h>
-
+#include <Windows.h>
 extern void TestFFVideoEncoder();
 extern void TestLogurur();
 

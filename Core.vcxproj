@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{0D98E9B2-AB6E-4EC5-96A2-3FB5DFAEC93C}</ProjectGuid>
     <RootNamespace>Core</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -135,12 +135,14 @@
   <ItemGroup>
     <ClInclude Include="include\codec\FFVideoEncoder.h" />
     <ClInclude Include="include\codec\IVideoEncoder.h" />
+    <ClInclude Include="include\common\corelog.hpp" />
     <ClInclude Include="include\common\log.h" />
     <ClInclude Include="include\common\MemoryPool.h" />
     <ClInclude Include="include\common\typedefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\codec\FFVideoEncoder.cpp" />
+    <ClCompile Include="src\common\corelog.cpp" />
     <ClCompile Include="src\common\log.cpp" />
     <ClCompile Include="src\common\MemoryPool.cpp" />
   </ItemGroup>
