@@ -1,29 +1,9 @@
-#ifndef _WIN32
-// Disable all warnings from gcc/clang:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpragmas"
-
-#pragma GCC diagnostic ignored "-Wc++98-compat"
-#pragma GCC diagnostic ignored "-Wc++98-compat-pedantic"
-#pragma GCC diagnostic ignored "-Wexit-time-destructors"
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-#pragma GCC diagnostic ignored "-Wglobal-constructors"
-#pragma GCC diagnostic ignored "-Wgnu-zero-variadic-macro-arguments"
-#pragma GCC diagnostic ignored "-Wmissing-prototypes"
-#pragma GCC diagnostic ignored "-Wpadded"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wunknown-pragmas"
-#pragma GCC diagnostic ignored "-Wunused-macros"
-#pragma GCC diagnostic ignored "-Wzero-as-null-pointer-constant"
-#endif
-
 #include <common/corelog.hpp>
 
 #ifndef LOG_HAS_BEEN_IMPLEMENTED
 #define LOG_HAS_BEEN_IMPLEMENTED
 
-#define LOG_PREAMBLE_WIDTH (53 + LOG_THREADNAME_WIDTH + LOG_FILENAME_WIDTH)
+#define LOG_PREAMBLE_WIDTH (55 + LOG_THREADNAME_WIDTH + LOG_FILENAME_WIDTH)
 
 #undef min
 #undef max
@@ -43,17 +23,10 @@
 
 #ifdef _WIN32
 	#include <direct.h>
-
 	#define localtime_r(a, b) localtime_s(b, a) // No localtime_r with MSVC, but arguments are swapped for localtime_s
-#else
-	#include <signal.h>
-	#include <sys/stat.h> // mkdir
-	#include <unistd.h>   // STDERR_FILENO
 #endif
 
-#ifdef __linux__
-	#include <linux/limits.h> // PATH_MAX
-#elif !defined(_WIN32)
+#if defined(_WIN32)
 	#include <limits.h> // PATH_MAX
 #endif
 
@@ -61,67 +34,10 @@
 	#define PATH_MAX 1024
 #endif
 
-#ifdef __APPLE__
-	#include "TargetConditionals.h"
-#endif
-
 // TODO: use defined(_POSIX_VERSION) for some of these things?
 
 #if defined(_WIN32) || defined(__CYGWIN__)
-	#define LOG_PTHREADS    0
 	#define LOG_WINTHREADS  1
-	#ifndef LOG_STACKTRACES
-		#define LOG_STACKTRACES 0
-	#endif
-#elif defined(__rtems__) || defined(__ANDROID__)
-	#define LOG_PTHREADS    1
-	#define LOG_WINTHREADS  0
-	#ifndef LOG_STACKTRACES
-		#define LOG_STACKTRACES 0
-	#endif
-#else
-	#define LOG_PTHREADS    1
-	#define LOG_WINTHREADS  0
-	#ifndef LOG_STACKTRACES
-		#define LOG_STACKTRACES 1
-	#endif
-#endif
-
-#if LOG_STACKTRACES
-	#include <cxxabi.h>    // for __cxa_demangle
-	#include <dlfcn.h>     // for dladdr
-	#include <execinfo.h>  // for backtrace
-#endif // LOG_STACKTRACES
-
-#if LOG_PTHREADS
-	#include <pthread.h>
-	#if defined(__FreeBSD__)
-		#include <pthread_np.h>
-		#include <sys/thr.h>
-	#elif defined(__OpenBSD__)
-		#include <pthread_np.h>
-	#endif
-
-	#ifdef __linux__
-		/* On Linux, the default thread name is the same as the name of the binary.
-		   Additionally, all new threads inherit the name of the thread it got forked from.
-		   For this reason, Loguru use the pthread Thread Local Storage
-		   for storing thread names on Linux. */
-		#define LOG_PTLS_NAMES 1
-	#endif
-#endif
-
-#if LOG_WINTHREADS
-	#ifndef _WIN32_WINNT
-		#define _WIN32_WINNT 0x0502
-	#endif
-	#define WIN32_LEAN_AND_MEAN
-	#define NOMINMAX
-	#include <windows.h>
-#endif
-
-#ifndef LOG_PTLS_NAMES
-   #define LOG_PTLS_NAMES 0
 #endif
 
 namespace corelog
@@ -161,26 +77,25 @@ namespace corelog
 
 	const auto s_start_time = steady_clock::now();
 
-	Verbosity g_stderr_verbosity  = Verbosity_0;
-	bool      g_colorcorelogtostderr  = true;
-	unsigned  g_flush_interval_ms = 0;
-	bool      g_preamble          = true;
+	static Verbosity g_stderr_verbosity  = Verbosity_0;
+	static bool      g_colorcorelogtostderr  = true;
+	static unsigned  g_flush_interval_ms = 0;
+	static bool      g_preamble          = true;
 
-	Verbosity g_internal_verbosity = Verbosity_0;
+	static Verbosity g_internal_verbosity = Verbosity_0;
 
 	// Preamble details
-	bool      g_preamble_date     = true;
-	bool      g_preamble_time     = true;
-	bool      g_preamble_uptime   = true;
-	bool      g_preamble_thread   = true;
-	bool      g_preamble_file     = true;
-	bool      g_preamble_verbose  = true;
-	bool      g_preamble_pipe     = true;
+	static bool      g_preamble_date     = true;
+	static bool      g_preamble_time     = true;
+	static bool      g_preamble_uptime   = true;
+	static bool      g_preamble_thread   = true;
+	static bool      g_preamble_file     = true;
+	static bool      g_preamble_verbose  = true;
+	static bool      g_preamble_pipe     = true;
 
 	static std::recursive_mutex  s_mutex;
 	static Verbosity             s_max_out_verbosity = Verbosity_OFF;
 	static std::string           s_argv0_filename;
-	static std::string           s_arguments;
 	static char                  s_current_dir[PATH_MAX];
 	static CallbackVec           s_callbacks;
 	static fatal_handler_t       s_fatal_handler   = nullptr;
@@ -227,16 +142,6 @@ namespace corelog
 	}();
 
 	static void print_preamble_header(char* out_buff, size_t out_buff_size);
-
-	#if LOG_PTLS_NAMES
-		static pthread_once_t s_pthread_key_once = PTHREAD_ONCE_INIT;
-		static pthread_key_t  s_pthread_key_name;
-
-		void make_pthread_key_name()
-		{
-			(void)pthread_key_create(&s_pthread_key_name, free);
-		}
-	#endif
 
 	// ------------------------------------------------------------------------------
 	// Colors
@@ -410,44 +315,6 @@ namespace corelog
 		return buff + INDENTATION_WIDTH * (NUM_INDENTATIONS - depth);
 	}
 
-	static void parse_args(int& argc, char* argv[], const char* verbosity_flag)
-	{
-		int arg_dest = 1;
-		int out_argc = argc;
-
-		for (int arg_it = 1; arg_it < argc; ++arg_it) {
-			auto cmd = argv[arg_it];
-			auto arg_len = strlen(verbosity_flag);
-			if (strncmp(cmd, verbosity_flag, arg_len) == 0 && !std::isalpha(cmd[arg_len], std::locale(""))) {
-				out_argc -= 1;
-				auto value_str = cmd + arg_len;
-				if (value_str[0] == '\0') {
-					// Value in separate argument
-					arg_it += 1;
-					CHECK_LT_F(arg_it, argc, "Missing verbosiy level after %s", verbosity_flag);
-					value_str = argv[arg_it];
-					out_argc -= 1;
-				}
-				if (*value_str == '=') { value_str += 1; }
-
-				auto req_verbosity = get_verbosity_from_name(value_str);
-				if (req_verbosity != Verbosity_INVALID) {
-					g_stderr_verbosity = req_verbosity;
-				} else {
-					char* end = 0;
-					g_stderr_verbosity = static_cast<int>(strtol(value_str, &end, 10));
-					CHECK_F(end && *end == '\0',
-						"Invalid verbosity. Expected integer, INFO, WARNING, ERROR or OFF, got '%s'", value_str);
-				}
-			} else {
-				argv[arg_dest++] = argv[arg_it];
-			}
-		}
-
-		argc = out_argc;
-		argv[argc] = nullptr;
-	}
-
 	static long long now_ns()
 	{
 		return duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count();
@@ -528,53 +395,68 @@ namespace corelog
 	#endif
 	}
 
-	void init(int& argc, char* argv[], const char* verbosity_flag)
+	void set_stderr_verbosity(int verbosity)
 	{
-		CHECK_GT_F(argc,       0,       "Expected proper argc/argv");
-		CHECK_EQ_F(argv[argc], nullptr, "Expected proper argc/argv");
+		g_stderr_verbosity = verbosity;
+	}
 
-		s_argv0_filename = filename(argv[0]);
+	void set_color_stderr(bool flag)
+	{
+		g_colorcorelogtostderr = flag;
+	}
 
-		#ifdef _WIN32
-			#define getcwd _getcwd
-		#endif
+	void set_flush_interval_ms(int ms)
+	{
+		g_flush_interval_ms = ms;
+	}
 
-		if (!getcwd(s_current_dir, sizeof(s_current_dir)))
-		{
+	void set_preamble_time(bool flag)
+	{
+		g_preamble_time = flag;
+	}
+
+	void set_preamble_uptime(bool flag)
+	{
+		g_preamble_uptime = flag;
+	}
+
+	void set_preamble_file(bool flag)
+	{
+		g_preamble_file = flag;
+	}
+
+	void set_preamble_date(bool flag)
+	{
+		g_preamble_date = flag;
+	}
+
+	void set_preamble_verbose(bool flag)
+	{
+		g_preamble_verbose = flag;
+	}
+
+	void set_preamble_pipe(bool flag)
+	{
+		g_preamble_pipe = flag;
+	}
+
+	void init(int verbosity_level)
+	{
+#ifdef _WIN32
+#define getcwd _getcwd
+#endif
+
+		if (!getcwd(s_current_dir, sizeof(s_current_dir))) {
 			const auto error_text = errno_as_text();
 			LOG_F(WARNING, "Failed to get current working directory: %s", error_text.c_str());
 		}
 
-		s_arguments = "";
-		for (int i = 0; i < argc; ++i) {
-			escape(s_arguments, argv[i]);
-			if (i + 1 < argc) {
-				s_arguments += " ";
-			}
-		}
 
-		if (verbosity_flag) {
-			parse_args(argc, argv, verbosity_flag);
-		}
+#if LOG_PTLS_NAMES || LOG_WINTHREADS
+		set_thread_name("main thread");
+#endif // LOG_WINTHREADS
 
-		#if LOG_PTLS_NAMES || LOG_WINTHREADS
-			set_thread_name("main thread");
-		#elif LOG_PTHREADS
-			char old_thread_name[16] = {0};
-			auto this_thread = pthread_self();
-			#if defined(__APPLE__) || defined(__linux__)
-				pthread_getname_np(this_thread, old_thread_name, sizeof(old_thread_name));
-			#endif
-			if (old_thread_name[0] == 0) {
-				#ifdef __APPLE__
-					pthread_setname_np("main thread");
-				#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-					pthread_set_name_np(this_thread, "main thread");
-				#elif defined(__linux__)
-					pthread_setname_np(this_thread, "main thread");
-				#endif
-			}
-		#endif // LOG_PTHREADS
+		g_stderr_verbosity = verbosity_level;
 
 		if (g_stderr_verbosity >= Verbosity_INFO) {
 			if (g_preamble) {
@@ -588,15 +470,11 @@ namespace corelog
 			}
 			fflush(stderr);
 		}
-		VLOG_F(g_internal_verbosity, "arguments: %s", s_arguments.c_str());
-		if (strlen(s_current_dir) != 0)
-		{
+		if (strlen(s_current_dir) != 0) {
 			VLOG_F(g_internal_verbosity, "Current dir: %s", s_current_dir);
 		}
 		VLOG_F(g_internal_verbosity, "stderr verbosity: %d", g_stderr_verbosity);
 		VLOG_F(g_internal_verbosity, "-----------------------------------");
-
-		install_signal_handlers();
 
 		atexit(on_atexit);
 	}
@@ -625,11 +503,6 @@ namespace corelog
 	const char* argv0_filename()
 	{
 		return s_argv0_filename.c_str();
-	}
-
-	const char* arguments()
-	{
-		return s_arguments.c_str();
 	}
 
 	const char* current_dir()
@@ -737,9 +610,6 @@ namespace corelog
 
 		if (mode == FileMode::Append) {
 			fprintf(file, "\n\n==========================================\n\n");
-		}
-		if (!s_arguments.empty()) {
-			fprintf(file, "arguments: %s\n", s_arguments.c_str());
 		}
 		if (strlen(s_current_dir) != 0) {
 			fprintf(file, "Current dir: %s\n", s_current_dir);
@@ -903,32 +773,12 @@ namespace corelog
 
 	void set_thread_name(const char* name)
 	{
-		#if LOG_PTLS_NAMES
-			(void)pthread_once(&s_pthread_key_once, make_pthread_key_name);
-			(void)pthread_setspecific(s_pthread_key_name, STRDUP(name));
-
-		#elif LOG_PTHREADS
-			#ifdef __APPLE__
-				pthread_setname_np(name);
-			#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-				pthread_set_name_np(pthread_self(), name);
-			#elif defined(__linux__)
-				pthread_setname_np(pthread_self(), name);
-			#endif
-		#elif LOG_WINTHREADS
+		#if LOG_WINTHREADS
 			strncpy_s(get_thread_name_win32(), LOG_THREADNAME_WIDTH + 1, name, _TRUNCATE);
 		#else // LOG_PTHREADS
 			(void)name;
 		#endif // LOG_PTHREADS
 	}
-
-#if LOG_PTLS_NAMES
-	const char* get_thread_name_ptls()
-	{
-		(void)pthread_once(&s_pthread_key_once, make_pthread_key_name);
-		return static_cast<const char*>(pthread_getspecific(s_pthread_key_name));
-	}
-#endif // LOG_PTLS_NAMES
 
 	void get_thread_name(char* buffer, unsigned long long length, bool right_align_hext_id)
 	{
@@ -937,39 +787,7 @@ namespace corelog
 #endif
 		CHECK_NE_F(length, 0u, "Zero length buffer in get_thread_name");
 		CHECK_NOTNULL_F(buffer, "nullptr in get_thread_name");
-#if LOG_PTHREADS
-		auto thread = pthread_self();
-		#if LOG_PTLS_NAMES
-			if (const char* name = get_thread_name_ptls()) {
-				snprintf(buffer, length, "%s", name);
-			} else {
-				buffer[0] = 0;
-			}
-		#elif defined(__APPLE__) || defined(__linux__)
-			pthread_getname_np(thread, buffer, length);
-		#else
-			buffer[0] = 0;
-		#endif
-
-		if (buffer[0] == 0) {
-			#ifdef __APPLE__
-				uint64_t thread_id;
-				pthread_threadid_np(thread, &thread_id);
-			#elif defined(__FreeBSD__)
-				long thread_id;
-				(void)thr_self(&thread_id);
-			#elif defined(__OpenBSD__)
-				unsigned thread_id = -1;
-			#else
-				uint64_t thread_id = thread;
-			#endif
-			if (right_align_hext_id) {
-				snprintf(buffer, length, "%*X", static_cast<int>(length - 1), static_cast<unsigned>(thread_id));
-			} else {
-				snprintf(buffer, length, "%X", static_cast<unsigned>(thread_id));
-			}
-		}
-#elif LOG_WINTHREADS
+#if LOG_WINTHREADS
 		if (const char* name = get_thread_name_win32()) {
 			snprintf(buffer, (size_t)length, "%s", name);
 		} else {
@@ -984,117 +802,6 @@ namespace corelog
 	// ------------------------------------------------------------------------
 	// Stack traces
 
-#if LOG_STACKTRACES
-	Text demangle(const char* name)
-	{
-		int status = -1;
-		char* demangled = abi::__cxa_demangle(name, 0, 0, &status);
-		Text result{status == 0 ? demangled : STRDUP(name)};
-		return result;
-	}
-
-	#if LOG_RTTI
-		template <class T>
-		std::string type_name()
-		{
-			auto demangled = demangle(typeid(T).name());
-			return demangled.c_str();
-		}
-	#endif // LOG_RTTI
-
-	static const StringPairList REPLACE_LIST = {
-		#if LOG_RTTI
-			{ type_name<std::string>(),    "std::string"    },
-			{ type_name<std::wstring>(),   "std::wstring"   },
-			{ type_name<std::u16string>(), "std::u16string" },
-			{ type_name<std::u32string>(), "std::u32string" },
-		#endif // LOG_RTTI
-		{ "std::__1::",                "std::"          },
-		{ "__thiscall ",               ""               },
-		{ "__cdecl ",                  ""               },
-	};
-
-	void do_replacements(const StringPairList& replacements, std::string& str)
-	{
-		for (auto&& p : replacements) {
-			if (p.first.size() <= p.second.size()) {
-				// On gcc, "type_name<std::string>()" is "std::string"
-				continue;
-			}
-
-			size_t it;
-			while ((it=str.find(p.first)) != std::string::npos) {
-				str.replace(it, p.first.size(), p.second);
-			}
-		}
-	}
-
-	std::string prettify_stacktrace(const std::string& input)
-	{
-		std::string output = input;
-
-		do_replacements(s_user_stack_cleanups, output);
-		do_replacements(REPLACE_LIST, output);
-
-		try {
-			std::regex std_allocator_re(R"(,\s*std::allocator<[^<>]+>)");
-			output = std::regex_replace(output, std_allocator_re, std::string(""));
-
-			std::regex template_spaces_re(R"(<\s*([^<> ]+)\s*>)");
-			output = std::regex_replace(output, template_spaces_re, std::string("<$1>"));
-		} catch (std::regex_error&) {
-			// Probably old GCC.
-		}
-
-		return output;
-	}
-
-	std::string stacktrace_as_stdstring(int skip)
-	{
-		// From https://gist.github.com/fmela/591333
-		void* callstack[128];
-		const auto max_frames = sizeof(callstack) / sizeof(callstack[0]);
-		int num_frames = backtrace(callstack, max_frames);
-		char** symbols = backtrace_symbols(callstack, num_frames);
-
-		std::string result;
-		// Print stack traces so the most relevant ones are written last
-		// Rationale: http://yellerapp.com/posts/2015-01-22-upside-down-stacktraces.html
-		for (int i = num_frames - 1; i >= skip; --i) {
-			char buf[1024];
-			Dl_info info;
-			if (dladdr(callstack[i], &info) && info.dli_sname) {
-				char* demangled = NULL;
-				int status = -1;
-				if (info.dli_sname[0] == '_') {
-					demangled = abi::__cxa_demangle(info.dli_sname, 0, 0, &status);
-				}
-				snprintf(buf, sizeof(buf), "%-3d %*p %s + %zd\n",
-						 i - skip, int(2 + sizeof(void*) * 2), callstack[i],
-						 status == 0 ? demangled :
-						 info.dli_sname == 0 ? symbols[i] : info.dli_sname,
-						 static_cast<char*>(callstack[i]) - static_cast<char*>(info.dli_saddr));
-				free(demangled);
-			} else {
-				snprintf(buf, sizeof(buf), "%-3d %*p %s\n",
-						 i - skip, int(2 + sizeof(void*) * 2), callstack[i], symbols[i]);
-			}
-			result += buf;
-		}
-		free(symbols);
-
-		if (num_frames == max_frames) {
-			result = "[truncated]\n" + result;
-		}
-
-		if (!result.empty() && result[result.size() - 1] == '\n') {
-			result.resize(result.size() - 1);
-		}
-
-		return prettify_stacktrace(result);
-	}
-
-#else // LOG_STACKTRACES
 	Text demangle(const char* name)
 	{
 		return Text(STRDUP(name));
@@ -1105,8 +812,6 @@ namespace corelog
 		// No stacktraces available on this platform"
 		return "";
 	}
-
-#endif // LOG_STACKTRACES
 
 	Text stacktrace(int skip)
 	{
@@ -1127,9 +832,9 @@ namespace corelog
 		if (g_preamble_time && pos < out_buff_size) {
 			pos += snprintf(out_buff + pos, out_buff_size - pos, "time         ");
 		}
-		//if (g_preamble_uptime && pos < out_buff_size) {
-		//	pos += snprintf(out_buff + pos, out_buff_size - pos, "( uptime  ) ");
-		//}
+		if (g_preamble_uptime && pos < out_buff_size) {
+			pos += snprintf(out_buff + pos, out_buff_size - pos, "( uptime  ) ");
+		}
 		if (g_preamble_thread && pos < out_buff_size) {
 			pos += snprintf(out_buff + pos, out_buff_size - pos, "[%-*s]", LOG_THREADNAME_WIDTH, " thread name/id");
 		}
@@ -1141,6 +846,9 @@ namespace corelog
 		}
 		if (g_preamble_pipe && pos < out_buff_size) {
 			pos += snprintf(out_buff + pos, out_buff_size - pos, "| ");
+		}
+		if (g_preamble_pipe && pos < out_buff_size) {
+			pos += snprintf(out_buff + pos, out_buff_size - pos, "msg");
 		}
 	}
 
@@ -1182,10 +890,10 @@ namespace corelog
 			pos += snprintf(out_buff + pos, out_buff_size - pos, "%02d:%02d:%02d.%03lld ",
 			               time_info.tm_hour, time_info.tm_min, time_info.tm_sec, ms_since_epoch % 1000);
 		}
-		//if (g_preamble_uptime && pos < out_buff_size) {
-		//	pos += snprintf(out_buff + pos, out_buff_size - pos, "(%8.3fs) ",
-		//	               uptime_sec);
-		//}
+		if (g_preamble_uptime && pos < out_buff_size) {
+			pos += snprintf(out_buff + pos, out_buff_size - pos, "(%8.3fs) ",
+			               uptime_sec);
+		}
 		if (g_preamble_thread && pos < out_buff_size) {
 			pos += snprintf(out_buff + pos, out_buff_size - pos, "[%-*s]",
 			               LOG_THREADNAME_WIDTH, thread_name);
@@ -1315,21 +1023,6 @@ namespace corelog
 		corelog_message(stack_trace_skip + 1, message, true, true);
 	}
 
-#if LOG_USE_FMTLIB
-	void corelog(Verbosity verbosity, const char* file, unsigned line, const char* format, fmt::ArgList args)
-	{
-		auto formatted = fmt::format(format, args);
-		corelog_to_everywhere(1, verbosity, file, line, "", formatted.c_str());
-	}
-
-	void raw_corelog(Verbosity verbosity, const char* file, unsigned line, const char* format, fmt::ArgList args)
-	{
-		auto formatted = fmt::format(format, args);
-		auto message = Message{verbosity, file, line, "", "", "", formatted.c_str()};
-		corelog_message(1, message, false, true);
-	}
-
-#else
 	void corelog(Verbosity verbosity, const char* file, unsigned line, const char* format, ...)
 	{
 		va_list vlist;
@@ -1348,7 +1041,6 @@ namespace corelog
 		corelog_message(1, message, false, true);
 		va_end(vlist);
 	}
-#endif
 
 	void flush()
 	{
@@ -1655,140 +1347,5 @@ namespace corelog
 	// ----------------------------------------------------------------------------
 
 } // namespace corelog
-
-// ----------------------------------------------------------------------------
-// .dP"Y8 88  dP""b8 88b 88    db    88     .dP"Y8
-// `Ybo." 88 dP   `" 88Yb88   dPYb   88     `Ybo."
-// o.`Y8b 88 Yb  "88 88 Y88  dP__Yb  88  .o o.`Y8b
-// 8bodP' 88  YboodP 88  Y8 dP""""Yb 88ood8 8bodP'
-// ----------------------------------------------------------------------------
-
-#ifdef _WIN32
-namespace corelog {
-	void install_signal_handlers()
-	{
-		#if defined(_MSC_VER)
-		#pragma message ( "No signal handlers on Win32" )
-		#else
-		#warning "No signal handlers on Win32"
-		#endif
-	}
-} // namespace corelog
-
-#else // _WIN32
-
-namespace corelog
-{
-	struct Signal
-	{
-		int         number;
-		const char* name;
-	};
-	const Signal ALL_SIGNALS[] = {
-#if LOG_CATCH_SIGABRT
-		{ SIGABRT, "SIGABRT" },
-#endif
-		{ SIGBUS,  "SIGBUS"  },
-		{ SIGFPE,  "SIGFPE"  },
-		{ SIGILL,  "SIGILL"  },
-		{ SIGINT,  "SIGINT"  },
-		{ SIGSEGV, "SIGSEGV" },
-		{ SIGTERM, "SIGTERM" },
-	};
-
-	void write_to_stderr(const char* data, size_t size)
-	{
-		auto result = write(STDERR_FILENO, data, size);
-		(void)result; // Ignore errors.
-	}
-
-	void write_to_stderr(const char* data)
-	{
-		write_to_stderr(data, strlen(data));
-	}
-
-	void call_default_signal_handler(int signal_number)
-	{
-		struct sigaction sig_action;
-		memset(&sig_action, 0, sizeof(sig_action));
-		sigemptyset(&sig_action.sa_mask);
-		sig_action.sa_handler = SIG_DFL;
-		sigaction(signal_number, &sig_action, NULL);
-		kill(getpid(), signal_number);
-	}
-
-	void signal_handler(int signal_number, siginfo_t*, void*)
-	{
-		const char* signal_name = "UNKNOWN SIGNAL";
-
-		for (const auto& s : ALL_SIGNALS) {
-			if (s.number == signal_number) {
-				signal_name = s.name;
-				break;
-			}
-		}
-
-		// --------------------------------------------------------------------
-		/* There are few things that are safe to do in a signal handler,
-		   but writing to stderr is one of them.
-		   So we first print out what happened to stderr so we're sure that gets out,
-		   then we do the unsafe things, like corelogging the stack trace.
-		*/
-
-		if (g_colorcorelogtostderr && s_terminal_has_color) {
-			write_to_stderr(terminal_reset());
-			write_to_stderr(terminal_bold());
-			write_to_stderr(terminal_light_red());
-		}
-		write_to_stderr("\n");
-		write_to_stderr("Loguru caught a signal: ");
-		write_to_stderr(signal_name);
-		write_to_stderr("\n");
-		if (g_colorcorelogtostderr && s_terminal_has_color) {
-			write_to_stderr(terminal_reset());
-		}
-
-		// --------------------------------------------------------------------
-
-#if LOG_UNSAFE_SIGNAL_HANDLER
-		// --------------------------------------------------------------------
-		/* Now we do unsafe things. This can for example lead to deadlocks if
-		   the signal was triggered from the system's memory management functions
-		   and the code below tries to do allocations.
-		*/
-
-		flush();
-		char preamble_buff[LOG_PREAMBLE_WIDTH];
-		print_preamble(preamble_buff, sizeof(preamble_buff), Verbosity_FATAL, "", 0);
-		auto message = Message{Verbosity_FATAL, "", 0, preamble_buff, "", "Signal: ", signal_name};
-		try {
-			corelog_message(1, message, false, false);
-		} catch (...) {
-			// This can happed due to s_fatal_handler.
-			write_to_stderr("Exception caught and ignored by Loguru signal handler.\n");
-		}
-		flush();
-
-		// --------------------------------------------------------------------
-#endif // LOG_UNSAFE_SIGNAL_HANDLER
-
-		call_default_signal_handler(signal_number);
-	}
-
-	void install_signal_handlers()
-	{
-		struct sigaction sig_action;
-		memset(&sig_action, 0, sizeof(sig_action));
-		sigemptyset(&sig_action.sa_mask);
-		sig_action.sa_flags |= SA_SIGINFO;
-		sig_action.sa_sigaction = &signal_handler;
-		for (const auto& s : ALL_SIGNALS) {
-			CHECK_F(sigaction(s.number, &sig_action, NULL) != -1,
-				"Failed to install handler for %s", s.name);
-		}
-	}
-} // namespace corelog
-
-#endif // _WIN32
 
 #endif // LOG_IMPLEMENTATION

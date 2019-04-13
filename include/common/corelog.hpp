@@ -4,21 +4,13 @@ adjust:
 1.remove streaming
 2.have modified namespace
 3.rename filename
+4.remove g_val
+5.remove windows-independent code
 */
 #include <common/typedefs.h>
-#if defined(LOG_IMPLEMENTATION)
-	#warning "You are defining LOG_IMPLEMENTATION. This is for older versions of Loguru. You should now instead include corelog.cpp (or build it and link with it)"
-#endif
 
-// Disable all warnings from gcc/clang:
-#if defined(__clang__)
-	#pragma clang system_header
-#elif defined(__GNUC__)
-	#pragma GCC system_header
-#endif
-
-#ifndef LOG_HAS_DECLARED_FORMAT_HEADER
-#define LOG_HAS_DECLARED_FORMAT_HEADER
+#ifndef __CORE_LOG_HPP__
+#define __CORE_LOG_HPP__
 
 // Semantic versioning. Loguru version can be printed with 
 // printf("%d.%d.%d", LOG_VERSION_MAJOR, LOG_VERSION_MINOR, LOG_VERSION_PATCH);
@@ -40,7 +32,7 @@ adjust:
 
 #ifndef LOG_FILENAME_WIDTH
 	// Width of the column containing the file name
-	#define LOG_FILENAME_WIDTH 23
+	#define LOG_FILENAME_WIDTH 16
 #endif
 
 #ifndef LOG_THREADNAME_WIDTH
@@ -84,29 +76,12 @@ adjust:
 	#define LOG_UNSAFE_SIGNAL_HANDLER 1
 #endif
 
-#if LOG_IMPLEMENTATION
-	#undef LOG_WITH_STREAMS
-	#define LOG_WITH_STREAMS 1
-#endif
-
-#ifndef LOG_USE_FMTLIB
-	#define LOG_USE_FMTLIB 0
-#endif
-
 #ifndef LOG_WITH_FILEABS
 	#define LOG_WITH_FILEABS 0
 #endif
 
 #ifndef LOG_RTTI
-#if defined(__clang__)
-	#if __has_feature(cxx_rtti)
-		#define LOG_RTTI 1
-	#endif
-#elif defined(__GNUG__)
-	#if defined(__GXX_RTTI)
-		#define LOG_RTTI 1
-	#endif
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 	#if defined(_CPPRTTI)
 		#define LOG_RTTI 1
 	#endif
@@ -125,12 +100,7 @@ adjust:
 #   define LOG_ANONYMOUS_VARIABLE(str) LOG_CONCATENATE(str, __LINE__)
 #endif
 
-#if defined(__clang__) || defined(__GNUC__)
-	// Helper macro for declaring functions as having similar signature to printf.
-	// This allows the compiler to catch format errors at compile-time.
-	#define LOG_PRINTF_LIKE(fmtarg, firstvararg) __attribute__((__format__ (__printf__, fmtarg, firstvararg)))
-	#define LOG_FORMAT_STRING_TYPE const char*
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 	#define LOG_PRINTF_LIKE(fmtarg, firstvararg)
 	#define LOG_FORMAT_STRING_TYPE _In_z_ _Printf_format_string_ const char*
 #else
@@ -151,10 +121,6 @@ adjust:
 #else
 #define LOG_PREDICT_FALSE(x) (__builtin_expect(x,     0))
 #define LOG_PREDICT_TRUE(x)  (__builtin_expect(!!(x), 1))
-#endif
-
-#if LOG_USE_FMTLIB
-	#include <fmt/format.h>
 #endif
 
 #ifdef _WIN32
@@ -259,29 +225,34 @@ namespace corelog
 		const char* message;     // User message goes here.
 	};
 
-	/* Everything with a verbosity equal or greater than g_stderr_verbosity will be
-	written to stderr. You can set this in code or via the -v argument.
-	Set to corelog::Verbosity_OFF to write nothing to stderr.
-	Default is 0, i.e. only corelog ERROR, WARNING and INFO are written to stderr.
-	*/
-	CORE_EXPORT extern Verbosity g_stderr_verbosity;
-	CORE_EXPORT extern bool      g_colorcorelogtostderr; // True by default.
-	CORE_EXPORT extern unsigned  g_flush_interval_ms; // 0 (unbuffered) by default.
-	CORE_EXPORT extern bool      g_preamble; // Prefix each corelog line with date, time etc? True by default.
+	CORE_EXPORT 
+	void set_stderr_verbosity(int verbosity); // Default is 0
 
-	/* Specify the verbosity used by corelog to corelog its info messages including the header
-	corelogged when corelogged::init() is called or on exit. Default is 0 (INFO).
-	*/
-	CORE_EXPORT extern Verbosity g_internal_verbosity;
+	CORE_EXPORT
+	void set_color_stderr(bool flag);// True by default.
+
+	CORE_EXPORT
+	void set_flush_interval_ms(int ms);// 0 (unbuffered) by default.
 
 	// Turn off individual parts of the preamble
-	CORE_EXPORT extern bool      g_preamble_date; // The date field
-	CORE_EXPORT extern bool      g_preamble_time; // The time of the current day
-	CORE_EXPORT extern bool      g_preamble_uptime; // The time since init call
-	CORE_EXPORT extern bool      g_preamble_thread; // The corelogging thread
-	CORE_EXPORT extern bool      g_preamble_file; // The file from which the corelog originates from
-	CORE_EXPORT extern bool      g_preamble_verbose; // The verbosity field
-	CORE_EXPORT extern bool      g_preamble_pipe; // The pipe symbol right before the message
+	CORE_EXPORT
+	void set_preamble_time(bool flag);
+
+	CORE_EXPORT
+	void set_preamble_date(bool flag);
+
+	CORE_EXPORT
+	void set_preamble_uptime(bool flag);
+
+	CORE_EXPORT
+	void set_preamble_file(bool flag);
+
+	CORE_EXPORT
+	void set_preamble_verbose(bool flag);
+
+	CORE_EXPORT
+	void set_preamble_pipe(bool flag);
+
 
 	// May not throw!
 	typedef void (*corelog_handler_t)(void* user_data, const Message& message);
@@ -326,7 +297,7 @@ namespace corelog
 		You can also set verbosity_flag to nullptr.
 	*/
 	CORE_EXPORT
-	void init(int& argc, char* argv[], const char* verbosity_flag = "-v");
+	void init(int verbosity_level);
 
 	// Will call remove_all_callbacks(). After calling this, corelogging will still go to stderr.
 	// You generally don't need to call this.
@@ -342,10 +313,6 @@ namespace corelog
 	*/
 	CORE_EXPORT
 	const char* argv0_filename();
-
-	// Returns all arguments given to corelog::init(), but escaped with a single space as separator.
-	CORE_EXPORT
-	const char* arguments();
 
 	// Returns the path to the current working dir when corelog::init() was called.
 	CORE_EXPORT
@@ -445,17 +412,6 @@ namespace corelog
 	CORE_EXPORT
 	Verbosity current_verbosity_cutoff();
 
-#if LOG_USE_FMTLIB
-	// Actual corelogging function. Use the LOG macro instead of calling this directly.
-	CORE_EXPORT
-	void corelog(Verbosity verbosity, const char* file, unsigned line, LOG_FORMAT_STRING_TYPE format, fmt::ArgList args);
-	FMT_VARIADIC(void, corelog, Verbosity, const char*, unsigned, LOG_FORMAT_STRING_TYPE)
-
-	// Log without any preamble or indentation.
-	CORE_EXPORT
-	void raw_corelog(Verbosity verbosity, const char* file, unsigned line, LOG_FORMAT_STRING_TYPE format, fmt::ArgList args);
-	FMT_VARIADIC(void, raw_corelog, Verbosity, const char*, unsigned, LOG_FORMAT_STRING_TYPE)
-#else // LOG_USE_FMTLIB?
 	// Actual corelogging function. Use the LOG macro instead of calling this directly.
 	CORE_EXPORT
 	void corelog(Verbosity verbosity, const char* file, unsigned line, LOG_FORMAT_STRING_TYPE format, ...) LOG_PRINTF_LIKE(4, 5);
@@ -463,7 +419,6 @@ namespace corelog
 	// Log without any preamble or indentation.
 	CORE_EXPORT
 	void raw_corelog(Verbosity verbosity, const char* file, unsigned line, LOG_FORMAT_STRING_TYPE format, ...) LOG_PRINTF_LIKE(4, 5);
-#endif // !LOG_USE_FMTLIB
 
 	// Helper class for LOG_SCOPE_F
 	class CORE_EXPORT LogScopeRAII
@@ -983,4 +938,4 @@ namespace corelog
 	#endif
 #endif // LOG_REDEFINE_ASSERT
 
-#endif // LOG_HAS_DECLARED_FORMAT_HEADER
+#endif // __CORE_LOG_HPP__
