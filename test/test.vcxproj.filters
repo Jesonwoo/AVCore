@@ -21,7 +21,7 @@
     <ClCompile Include="TestFFVideoEncoder.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="TestLoguru.cpp">
+    <ClCompile Include="TestCoreLog.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

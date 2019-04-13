@@ -1,10 +1,8 @@
-#include <common/log.h>
+//#include <common/log.h>
 #include <codec/IVideoEncoder.h>
 #include <codec/FFVideoEncoder.h>
 #include <codec/IVideoEncoder.h>
-
-const static char * TAG = "TestVideoEncoder";
-
+#include <common/corelog.hpp>
 class VideoEncodeCallback : public IVideoEncodeCallback
 {
 public:
@@ -13,7 +11,7 @@ public:
 
     int OnVideoEncode(uint8_t * data, int size, enFrameType type)
     {
-        LOGI(TAG, "packet size: %d, frame type: %d\n", size, type);
+        LOG_F(INFO, "packet size: %d, frame type: %d", size, type);
         FILE * pf = fopen("1080p.h264", "wb+");
         fwrite(data, size, 1, pf);
         fclose(pf);
@@ -28,20 +26,19 @@ void TestFFVideoEncoder()
     VideoEncodeCallback cb;
     FFVideoEncoder encoder;
 
-    encoder.Open(PIX_YUV420p, H264, w, h, 10, 600000, &cb);
+    encoder.Open(PIX_YUV420p, H264, w, h, 10, 60000000, &cb);
     encoder.Start();
 
     int yuvsize = w * h * 3 >> 1;
     uint8_t * yuv = new uint8_t[yuvsize];
     FILE * fp = fopen("1080p.yuv", "rb");
     if (fp == NULL) {
-        LOGE(TAG, "fopen error\n");
+        LOG_F(ERROR, "fopen error");
         return;
     }
 
-    fread(yuv, yuvsize, 1, fp);
-
-    encoder.Encode(yuv, yuvsize);
+	fread(yuv, 1, yuvsize, fp);
+	encoder.Encode(yuv, yuvsize);
 
     encoder.Stop();
     encoder.Close();

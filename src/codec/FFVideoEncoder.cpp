@@ -1,7 +1,6 @@
+#include <common/corelog.hpp>
 #include <codec/FFVideoEncoder.h>
-#include <common/log.h>
-
-static const char * TAG = "FFVideoEncoder";
+//#include <common/log.h>
 
 FFVideoEncoder::FFVideoEncoder()
     : m_bOpen(false)
@@ -10,7 +9,9 @@ FFVideoEncoder::FFVideoEncoder()
     , m_iPicW(0)
     , m_enInputFmt(PIX_YUV420p)
     , m_enOutputFmt(H264)
-    , m_cb(NULL){}
+    , m_cb(NULL)
+{
+}
 
 FFVideoEncoder::~FFVideoEncoder()
 {
@@ -28,31 +29,31 @@ int FFVideoEncoder::Open(enPixFormat ifmt, enEncodeType ofmt,
 
     _SelectCodecType(ofmt);
 
-    LOGV(TAG, "pic:%dx%d, enc:%dx%d, bitrate:%d, gopsize:%d\n",
+    LOG_F(INFO, "pic:%dx%d, enc:%dx%d, bitrate:%d, gopsize:%d",
         picw, pich, bitrate, gopsize);
 
     m_pAVCodec = avcodec_find_encoder(m_codecId);
-    //m_pAVCodec      = avcodec_find_encoder_by_name("libx264");
+    //m_pAVCodec = avcodec_find_encoder_by_name("libx264");
     if (m_pAVCodec == NULL) {
-        LOGE(TAG, "avcodec_find_decoder error\n");
+        LOG_F(ERROR, "avcodec_find_decoder error");
         goto error;
     }
 
     m_pAVPacket = av_packet_alloc();
     if (m_pAVPacket == NULL) {
-        LOGE(TAG, "av_packet_alloc error\n");
+		LOG_F(ERROR, "av_packet_alloc error");
         goto error;
     }
 
     m_pAVFrame = av_frame_alloc();
     if (m_pAVFrame == NULL) {
-        LOGE(TAG, "av_frame_alloc error\n");
+		LOG_F(ERROR, "av_frame_alloc error");
         goto error;
     }
 
     m_pAVContext = avcodec_alloc_context3(m_pAVCodec);
     if (m_pAVContext == NULL) {
-        LOGE(TAG, "avcodec_alloc_context3 error\n");
+		LOG_F(ERROR, "avcodec_alloc_context3 error");
         goto error;
     }
 
@@ -77,7 +78,7 @@ int FFVideoEncoder::Open(enPixFormat ifmt, enEncodeType ofmt,
     m_pAVContext->rc_initial_buffer_occupancy = m_iBitrate * 3 / 4;
 
     if (avcodec_open2(m_pAVContext, m_pAVCodec, NULL) < 0) {
-        LOGE(TAG, "avcodec_open2 error\n");
+		LOG_F(ERROR, "avcodec_open2 error");
         goto error;
     }
 
@@ -99,11 +100,11 @@ error:
 int FFVideoEncoder::Encode(uint8_t * data, int size)
 {
     if (!m_bOpen) {
-        LOGE(TAG, "cann't encode before open\n");
+		LOG_F(ERROR, "cann't encode before open");
         return -1;
     }
     if (!m_bStart) {
-        LOGI(TAG, "the encoder has stopped\n");
+		LOG_F(ERROR, "the encoder has stopped");
         return -1;
     }
     int ret = -1;
@@ -120,7 +121,7 @@ int FFVideoEncoder::Encode(uint8_t * data, int size)
         m_pAVFrame->linesize);
 
     if (ret < 0) {
-        LOGE(TAG, "av_frame_make_writable error\n");
+		LOG_F(ERROR, "av_frame_make_writable error");
         return -1;
     }
 
@@ -195,7 +196,7 @@ int FFVideoEncoder::_Encode(AVFrame * frame)
 {
     int ret = avcodec_send_frame(m_pAVContext, frame);
     if (ret < 0) {
-        LOGE(TAG, "error sending a frame for encoding\n");
+		LOG_F(ERROR, "error sending a frame for encoding");
         return -1;
     }
 
@@ -204,16 +205,16 @@ int FFVideoEncoder::_Encode(AVFrame * frame)
         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
             continue;
         } else if (ret < 0) {
-            LOGE(TAG, "error during encoding\n");
+			LOG_F(ERROR, "error during encoding");
             return -1;
         }
 
-        LOGV(TAG, "pkt pts: %ld, pkt size: %d\n", m_pAVPacket->pts, m_pAVPacket->size);
+        LOG_F(INFO, "pkt pts: %ld, pkt size: %d", m_pAVPacket->pts, m_pAVPacket->size);
         if (m_cb != NULL) {
 
             bool bIFrame = m_pAVPacket->flags | AV_PKT_FLAG_KEY;
             enFrameType type = bIFrame ? FRAME_I : FRAME_P;
-            LOGV(TAG, "encode output [%s] size: %d\n", bIFrame ? "I" : "P", m_pAVPacket->size);
+			LOG_F(INFO, "encode output [%s] size: %d", bIFrame ? "I" : "P", m_pAVPacket->size);
             m_cb->OnVideoEncode(m_pAVPacket->data, m_pAVPacket->size, type);
         }
         av_packet_unref(m_pAVPacket);
