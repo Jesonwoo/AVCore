@@ -1,7 +1,4 @@
-#include <common/corelog.hpp>
-
-#ifndef LOG_HAS_BEEN_IMPLEMENTED
-#define LOG_HAS_BEEN_IMPLEMENTED
+﻿#include <common/CoreLog.hpp>
 
 #define LOG_PREAMBLE_WIDTH (55 + LOG_THREADNAME_WIDTH + LOG_FILENAME_WIDTH)
 
@@ -343,7 +340,6 @@ namespace corelog
 
 	static void write_hex_digit(std::string& out, unsigned num)
 	{
-		DCHECK_LT_F(num, 16u);
 		if (num < 10u) { out.push_back(char('0' + num)); }
 		else { out.push_back(char('A' + num - 10)); }
 	}
@@ -1347,5 +1343,3 @@ namespace corelog
 	// ----------------------------------------------------------------------------
 
 } // namespace corelog
-
-#endif // LOG_IMPLEMENTATION
