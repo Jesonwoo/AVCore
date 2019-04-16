@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{0D98E9B2-AB6E-4EC5-96A2-3FB5DFAEC93C}</ProjectGuid>
     <RootNamespace>Core</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -136,15 +136,27 @@
     <ClInclude Include="include\codec\FFVideoEncoder.h" />
     <ClInclude Include="include\codec\IVideoEncoder.h" />
     <ClInclude Include="include\common\corelog.hpp" />
-    <ClInclude Include="include\common\log.h" />
     <ClInclude Include="include\common\MemoryPool.h" />
     <ClInclude Include="include\common\typedefs.h" />
+    <ClInclude Include="include\thread\ConditionWin.h" />
+    <ClInclude Include="include\thread\ICondition.h" />
+    <ClInclude Include="include\thread\IMutex.h" />
+    <ClInclude Include="include\thread\IThread.h" />
+    <ClInclude Include="include\thread\MutexWin.h" />
+    <ClInclude Include="include\thread\ThreadWin.h" />
+    <ClInclude Include="include\thread\ThreadWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\codec\FFVideoEncoder.cpp" />
     <ClCompile Include="src\common\corelog.cpp" />
-    <ClCompile Include="src\common\log.cpp" />
     <ClCompile Include="src\common\MemoryPool.cpp" />
+    <ClCompile Include="src\thread\ConditionWin.cpp" />
+    <ClCompile Include="src\thread\ICondition.cpp" />
+    <ClCompile Include="src\thread\IMutex.cpp" />
+    <ClCompile Include="src\thread\IThread.cpp" />
+    <ClCompile Include="src\thread\MutexWin.cpp" />
+    <ClCompile Include="src\thread\ThreadWin.cpp" />
+    <ClCompile Include="src\thread\ThreadWrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -25,11 +25,14 @@
     <Filter Include="源文件\codec">
       <UniqueIdentifier>{314b0f9b-b1ed-4352-8d93-4384021e3f77}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\thread">
+      <UniqueIdentifier>{93dff55d-b49c-4227-aced-865f7428aa7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\thread">
+      <UniqueIdentifier>{1d7254ec-505f-4f95-ae59-727064860feb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\common\log.cpp">
-      <Filter>源文件\common</Filter>
-    </ClCompile>
     <ClCompile Include="src\codec\FFVideoEncoder.cpp">
       <Filter>源文件\codec</Filter>
     </ClCompile>
@@ -39,12 +42,30 @@
     <ClCompile Include="src\common\corelog.cpp">
       <Filter>源文件\common</Filter>
     </ClCompile>
+    <ClCompile Include="src\thread\ICondition.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\IMutex.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\IThread.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\ThreadWrapper.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\ConditionWin.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\MutexWin.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
+    <ClCompile Include="src\thread\ThreadWin.cpp">
+      <Filter>源文件\thread</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\common\typedefs.h">
-      <Filter>头文件\common</Filter>
-    </ClInclude>
-    <ClInclude Include="include\common\log.h">
       <Filter>头文件\common</Filter>
     </ClInclude>
     <ClInclude Include="include\codec\FFVideoEncoder.h">
@@ -58,6 +79,27 @@
     </ClInclude>
     <ClInclude Include="include\common\corelog.hpp">
       <Filter>头文件\common</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\ICondition.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\IMutex.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\IThread.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\ThreadWrapper.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\ConditionWin.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\MutexWin.h">
+      <Filter>头文件\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="include\thread\ThreadWin.h">
+      <Filter>头文件\thread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
-#ifndef __TYPEDEFS_H__
+﻿#ifndef __TYPEDEFS_H__
 #define __TYPEDEFS_H__
 
-#include <stdio.h>          //define NULL.
+#include <stdio.h>            //define NULL.
 
 // Include winsock2.h before including <windows.h> to maintain consistency with
 // win32.h.
@@ -37,6 +37,24 @@ typedef unsigned __int64    uint64_t;
 #define CORE_EXPORT          __declspec(dllexport)
 #if _DEBUG
 #define CORE_DEBUG_EXPORT    __declspec(dllexport)
+#elif
+#define CORE_DEBUG_EXPORT    
 #endif
+
+#define SAFE_DELETE(ptr)        \
+    do {                        \
+        if (ptr != NULL) {      \
+            delete ptr;         \
+            ptr = NULL;         \
+        }                       \
+    } while (0)
+
+#define SAFE_FREE(ptr)          \
+    do {                        \
+        if (ptr != NULL) {      \
+            free(ptr);          \
+            ptr = NULL;         \
+        }                       \
+    } while (0)
 
 #endif // __TYPEDEF_H__
